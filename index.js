@@ -20,18 +20,16 @@ app.get('/vodka', (req, res) => {
   res.status(200).send(JSON.stringify(vodkas));
 });
 
-app.delete('/vodka/:id', (req, res) => {
+app.delete('/vodka/:id', (req, res, next) => {
     let err;
 
     const id = req.params.id;
     if (!id) {
         err = new Error('Тут кстати айди нужно передать, чтобы норм было');
-        err.statusCode = 500;
     }
 
     if (err) {
-        res.status(500).send(err.message);
-        return;
+        next(err);
     }
 
     vodkas = vodkas.filter(vodka => vodka.id !== id);
@@ -59,17 +57,14 @@ app.post('/vodka', (req, res, next) => {
 
     if (JSON.stringify(bodyKeys) !== JSON.stringify(vodkaKeysToChek)) {
         err = new Error('Игорь ты какую-то хуйню шлешь, побойся бога');
-        next(err);
     } else if (Number.isNaN(Number(degree)) || Number.isNaN(Number(amount))) {
         err = new Error('Degree and amount should be numeric');
-        next(err);
     } else if (spirit !== 'alpha' && spirit !== 'lux') {
         err = new Error('Spirit can be only \"alpha\" or \"lux\"');
-        next(err);
     }
 
     if (err) {
-        res.status(500).send(err.message);
+        next(err);
         return;
     }
 
@@ -104,26 +99,27 @@ app.put('/vodka', (req, res, next) => {
 
     if (!isAllBodyKeysInVodkaKeys) {
         err = new Error('Игорь ты какую-то хуйню шлешь, побойся бога');
-        next(err);
     } else if ((degree && Number.isNaN(Number(degree))) || (amount && Number.isNaN(Number(amount)))) {
         err = new Error('Degree and amount should be numeric');
-        next(err);
     } else if ((spirit && spirit !== 'alpha') && (spirit && spirit !== 'lux')) {
         err = new Error('Spirit can be only \"alpha\" or \"lux\"');
-        next(err);
     } else if (!vodkas[vodkaToChangeIndex]) {
         err = new Error('There is no item with such id');
-        next(err);
     }
 
     if (err) {
-        res.status(500).send(err.message);
+        next(err);
         return;
     }
 
     Object.keys(body).forEach(key => vodkas[vodkaToChangeIndex][key] = body[key]);
 
     res.status(200).send('Updated succesfully');
+});
+
+app.use(function(err, req, res, next) {
+    console.error(err.stack);
+    res.status(500).send(err.message);
 });
 
 app.listen(PORT, () => console.log(`Well, hello there. We drink on port ${PORT}`));
