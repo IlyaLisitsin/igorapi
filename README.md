@@ -22,7 +22,7 @@ npm run start
 }
 
 GET     http://localhost:5000/vodka
-        http://localhost:5000/vodka?degree=45&spirit=alpha&name=Tova...
+query   http://localhost:5000/vodka?degree=45&spirit=alpha&name=Tova...
 
 POST    http://localhost:5000/vodka
 body:   { name, degree, review, amount, spirit }
