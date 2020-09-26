@@ -17,7 +17,25 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 app.get('/vodka', (req, res) => {
-  res.status(200).send(JSON.stringify(vodkas));
+    const { limit, ...queries } = req.query;
+    let vodkaResult = Array.from(vodkas);
+    if (queries) {
+
+        vodkaResult = vodkaResult.filter(vodka => {
+            let isReturn = true;
+            for (let key in queries) {
+                if (vodka[key] != queries[key]) isReturn = false;
+            }
+
+            return isReturn && vodka;
+        });
+    }
+
+    if (limit) {
+        vodkaResult = vodkaResult.slice(0, limit);
+    }
+
+    res.status(200).send(JSON.stringify(vodkaResult));
 });
 
 app.delete('/vodka/:id', (req, res, next) => {
