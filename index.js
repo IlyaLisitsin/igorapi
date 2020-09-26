@@ -54,8 +54,8 @@ app.post('/vodka', (req, res, next) => {
         spirit,
     } = body;
 
-    const bodyKeys = Object.keys(req.body).filter(key => key !== 'id');
-    const vodkaKeysToChek = vodkaKeys.filter(key => key !== 'id');
+    const bodyKeys = Object.keys(req.body).filter(key => key !== 'id').sort();
+    const vodkaKeysToChek = vodkaKeys.filter(key => key !== 'id').sort();
 
     if (JSON.stringify(bodyKeys) !== JSON.stringify(vodkaKeysToChek)) {
         err = new Error('Игорь ты какую-то хуйню шлешь, побойся бога');
@@ -75,6 +75,55 @@ app.post('/vodka', (req, res, next) => {
 
     vodkas.push({ ...body, id: String(Date.now()) });
     res.status(200).send('Dobavilos succesfully');
+});
+
+app.put('/vodka', (req, res, next) => {
+    let err;
+
+    const body = req.body;
+
+    if (!req.body) {
+        err = new Error('Body should not be empty');
+        err.statusCode = 500;
+    }
+
+    const {
+        id,
+        degree,
+        amount,
+        spirit,
+    } = body;
+
+    const vodkaToChangeIndex = vodkas.findIndex(vodka => vodka.id === String(id));
+    const bodyKeys = Object.keys(req.body);
+
+    let isAllBodyKeysInVodkaKeys = true;
+    for (let key in bodyKeys) {
+        if (!vodkaKeys[key]) isAllBodyKeysInVodkaKeys = false;
+    }
+
+    if (!isAllBodyKeysInVodkaKeys) {
+        err = new Error('Игорь ты какую-то хуйню шлешь, побойся бога');
+        next(err);
+    } else if ((degree && Number.isNaN(Number(degree))) || (amount && Number.isNaN(Number(amount)))) {
+        err = new Error('Degree and amount should be numeric');
+        next(err);
+    } else if ((spirit && spirit !== 'alpha') && (spirit && spirit !== 'lux')) {
+        err = new Error('Spirit can be only \"alpha\" or \"lux\"');
+        next(err);
+    } else if (!vodkas[vodkaToChangeIndex]) {
+        err = new Error('There is no item with such id');
+        next(err);
+    }
+
+    if (err) {
+        res.status(500).send(err.message);
+        return;
+    }
+
+    Object.keys(body).forEach(key => vodkas[vodkaToChangeIndex][key] = body[key]);
+
+    res.status(200).send('Updated succesfully');
 });
 
 app.listen(PORT, () => console.log(`Well, hello there. We drink on port ${PORT}`));
