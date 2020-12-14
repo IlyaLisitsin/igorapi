@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 5000;
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -15,8 +16,10 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 app.get('/vodka', (req, res) => {
+    console.log('pidoras ahah', req.cookies);
     const { limit, ...queries } = req.query;
     let vodkaResult = Array.from(vodkas);
     if (queries) {
